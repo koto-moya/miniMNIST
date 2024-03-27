@@ -3,6 +3,7 @@ from modules.nn import Layer, Neuron, Model
 from modules.DL import DataLoader
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 
 # implement a nn in nothing but numpy
 
@@ -61,12 +62,22 @@ class Trainer():
     
     def cross_entropy_loss(self, p, y):
         log_soft = np.log(self.softmax(p))
-        one_hot = log_soft[range(len(log_soft)),y]
+        one_hot = log_soft[y]
         cel = -np.sum(one_hot)
         return cel
 
 if __name__ == "__main__":
-    dl = DataLoader(); imgs = dl.imgs()#; model = Model(28*28, [30, 10]); train = Trainer(imgs, model, 0.01, 10)
+    dl = DataLoader() 
+    x, y = dl.imgs() 
+    print(y.flatten())
+    print(len(x))
+    model = Model(28*28, [30, 10])
+    out = np.apply_along_axis(model, 1, x)
+    preds = np.argmax(out, axis=1)
+    print(preds)
+
+    
+    #train = Trainer(data, model, 0.01, 10)
     #train.train_loop()
     #plt.imshow(imgs[90][0].reshape(28,28))
     #print(imgs[1])
