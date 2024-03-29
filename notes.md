@@ -20,7 +20,10 @@ After falling back on the original dataloader (enhanced with a shuffler) I went 
 
 Training on a batch size of 16, lr = 0.01 for 200 epochs produced ~20% training accuracy. It took about 20 mins projecting this out I expect this hyper param set to get to 90% 1.5 hours if it ever gets there. 
 
+I went back to the white board and realized that my intuitions of how the NN architecture worked was incorrect.  So now I am going to play around with each level of the module to get a feeling for how it actually works.  Honestly, I've realized that I don't really know how to extend from a neuron to a layer to a model.  Like I don't even know what a neuron really is, I think I've been assuming a neuron is what would actually be considered a layer.  
 
+
+I get it! A neuron is the weighted sum of the inputs!  This is obviously not groundbreaking and I knew this before technically but I couldn't intuit it. Now I can   
 
 
 
