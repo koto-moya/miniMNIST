@@ -2,7 +2,7 @@ import numpy as np
 
 class Value():
     def __init__(self, data, _children=(), _op = ""):
-        self.data = data # raw numerical value
+        self.data = np.float16(data) # raw numerical value
         self._prev = set(_children) # the connective tissue of the graph
         self._op = _op
         self._backward = lambda: None
@@ -104,15 +104,18 @@ class Value():
         return self.data <= other.data
     
     def backward(self):
-        L = []
-        S = set()
+
+        # topological order all of the children in the graph
+        topo = []
+        visited = set()
         def build_topo(v):
-            if v not in S:
-                S.add(v)
-                for c in v._prev:
-                    build_topo(c)
-                L.append(v)
+            if v not in visited:
+                visited.add(v)
+                for child in v._prev:
+                    build_topo(child)
+                topo.append(v)
         build_topo(self)
-        self.grad = 1.0
-        for n in reversed(L):
-            n._backward()
+        # go one variable at a time and apply the chain rule to get its gradient
+        self.grad = 1
+        for v in reversed(topo):
+            v._backward()

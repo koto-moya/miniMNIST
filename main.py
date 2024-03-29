@@ -1,86 +1,58 @@
-from modules.engine import Value
-from modules.nn import Layer, Neuron, Model
 from modules.DL import DataLoader
+from modules.nn import Model
+
 import numpy as np
 import matplotlib.pyplot as plt
-import random
-
-# implement a nn in nothing but numpy
-
-# Init weights and bias
-
-# set hyperparameters
-    # for every epoch
-        # make predictions
-
-        # calculate loss 
-
-        # backprop
-
-        # Update the params
+import time
+from tqdm import trange
 
 
-# Model will train on MNIST data (28X28) image of b&w pixel values
+if __name__ == "__main__":
+    dl = DataLoader()
+    epochs = 200
+    model = Model(28*28, [10,10])
 
-# Each image comes with a prediction so ([28*28],[0,9])
-
-# Model should ingest image and make a prediction 0-9 calc loss then back prop
-
-# model should have the layer structure Linear -> relu -> linear
-
-
-class Trainer():
-    def __init__(self, ds, model, lr, epochs):
-        self.model = model
-        self.lr = lr
-        self.loss = 0.0
-        self.epochs = epochs
-        self.train_data = ds[round(len(ds)*.2):]
-        self.valid_data = ds[:round(len(ds)*.2)]
-        self.backward = np.vectorize(lambda x: x.backward()) 
-
-    def train_loop(self):
-        for _ in range(self.epochs):
-            self.train()
-            print(self.loss)
-
-    def train(self):
-        for x, y in self.train_data:
-            p = self.model(x)
-            self.loss = self.cross_entropy_loss(p, y)
-            self.backward(self.loss)
-            self.update_params
-
-    def update_params(self):
-        for p in self.model.parameters():
-            p.data -= self.lr*p.grad
-            p.grad = 0.0 
-
-    def softmax(self, p):
+    def logsoft(p):
         p = p-np.max(p)
-        return np.exp(p)/np.sum(np.exp(p))
+        return np.log(np.exp(p)/np.sum(np.exp(p)))
     
-    def cross_entropy_loss(self, p, y):
-        log_soft = np.log(self.softmax(p))
+    def cross_entropy_loss(p, y):
+        log_soft = logsoft(p)
         one_hot = log_soft[y]
         cel = -np.sum(one_hot)
         return cel
-
-if __name__ == "__main__":
-    dl = DataLoader() 
-    x, y = dl.imgs() 
-    print(y.flatten())
-    print(len(x))
-    model = Model(28*28, [30, 10])
-    out = np.apply_along_axis(model, 1, x)
-    preds = np.argmax(out, axis=1)
-    print(preds)
-
     
-    #train = Trainer(data, model, 0.01, 10)
-    #train.train_loop()
-    #plt.imshow(imgs[90][0].reshape(28,28))
-    #print(imgs[1])
+    
+    lr = 0.01
+    losses = []
+    accuracies = []
+    batch_losses = []
+    batch_accuracies = []
+    start_time = time.monotonic()
+    for i in  range(epochs):
+        xy_zip = dl.imgs()
+        test = dl.imgs(ds_type = "test")
+        for x, y in xy_zip:
+            p = model(x)
+            loss = cross_entropy_loss(p, y)
+            loss.backward()
+            batch_losses.append(loss.data)
+            for p in model.parameters():
+                p.data -= lr*p.grad
+                p.grad = 0.0
+        for x,y in test:
+            p = model(x)
+            batch_accuracies.append(np.argmax(p)==y)
+        accuracies.append(np.mean(batch_accuracies))
+        batch_accuracies = []
+        losses.append(np.mean(batch_losses))
+        print(f"loss: {np.mean(batch_losses): .2f}    |   testing accuracy: {np.mean(accuracies)*100: .2f}%    |   epoch: {i}", end="\r", flush=True)
+        batch_losses = []
+    end_time = time.monotonic()
+    print(f"time taken: {(end_time-start_time)/60: .2f} mins", end="\r", flush=True)
+    plt.plot(losses)
+    plt.show()
+
 
 
     
